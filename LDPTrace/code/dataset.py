@@ -13,6 +13,7 @@ def read_brinkhoff(dataset='brinkhoff'):
     """
     db = []
     file_name = f'../data/{dataset}.dat'
+    parse_oldenburg(file_name)
     with open(file_name, 'r') as f:
         row = f.readline()
         while row:
@@ -63,3 +64,7 @@ def dataset_stats(db: List[List[Tuple[float, float]]], db_name: str):
         json.dump(stats, f)
 
     return stats
+
+def parse_oldenburg():
+    # Working on this right now... 
+    return
