@@ -14,6 +14,7 @@ def read_brinkhoff(dataset='brinkhoff'):
     db = []
     file_name = f'../data/{dataset}.dat'
     parse_oldenburg(file_name)
+    file_name = file_name.replace('.dat', '_formatted.dat')
     with open(file_name, 'r') as f:
         row = f.readline()
         while row:
@@ -65,6 +66,56 @@ def dataset_stats(db: List[List[Tuple[float, float]]], db_name: str):
 
     return stats
 
-def parse_oldenburg():
-    # Working on this right now... 
-    return
+
+
+# ----- CODE TO PARSE OLDENBURG DATASET -----
+   
+def parse_line(line):
+    parts = line.split()
+    if len(parts) == 10:
+        label, point_id, seq_num, obj_class, timestamp, x_coord, y_coord, speed, next_x, next_y = parts
+        return {
+            "label": label,
+            "point_id": int(point_id),
+            "seq_num": int(seq_num),
+            "obj_class": int(obj_class),
+            "timestamp": int(timestamp),
+            "x_coord": float(x_coord),
+            "y_coord": float(y_coord),
+            "speed": float(speed),
+            "next_x": int(next_x),
+            "next_y": int(next_y)
+        }
+    else:
+        return None
+
+def transform_data(lines):
+    data = {}
+    for line in lines:
+        parsed = parse_line(line)
+        if parsed:
+            point_id = parsed["point_id"]
+            if point_id not in data:
+                data[point_id] = []
+            data[point_id].append(f"{parsed['x_coord']},{parsed['y_coord']}")
+    return data
+
+def format_transformed_data(data):
+    formatted_lines = []
+    for point_id, coords in data.items():
+        formatted_lines.append(f"#{point_id}:")
+        formatted_lines.append(f">0: {'; '.join(coords)}")
+    return formatted_lines
+
+def parse_oldenburg(input_file: str):
+    with open(input_file, 'r') as file:
+        lines = file.readlines()
+    
+    data = transform_data(lines)
+    formatted_lines = format_transformed_data(data)
+    
+    with open(output_file, 'w') as file:
+        file.write("\n".join(formatted_lines))
+
+output_file = '../data/oldenburg_formatted.dat'
+
