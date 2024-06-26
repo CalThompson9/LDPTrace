@@ -412,7 +412,7 @@ syn_trip_dist = np.asarray(syn_trip_dist) / np.sum(syn_trip_dist)
 trip_error = utils.jensen_shannon_distance(orig_trip_dist, syn_trip_dist)
 logger.info(f'Trip error: {trip_error}')
 
-# Diameter error
+# Diameter error - Note from callum: This caused an error for me if run with multiprocessing enabled.
 logger.info('Experiment: Diameter error...')
 diameter_error = experiment.calculate_diameter_error(orig_trajectories, synthetic_trajectories,
                                                      multi=args.multiprocessing)
