@@ -119,3 +119,32 @@ def parse_oldenburg(input_file: str):
 
 output_file = '../data/oldenburg_formatted.dat'
 
+# ----- CODE TO READ PORTO DATASET -----
+def read_porto(dataset='porto'):
+    """
+    Porto dataset:
+    #n:
+    >0: x1,y1;x2,y2;...:
+    """
+    db = []
+    file_name = f'../data/{dataset}.dat'
+    with open(file_name, 'r') as f:
+        row = f.readline()
+        while row:
+            if row[0] == '#':
+                row = f.readline()
+                continue
+            if not row[0] == '>':
+                print(row)
+                exit()
+            # Skip '>0:' and ';\n' in the end
+            row = row[3:-2].split(';')  # row: ['x1,y1', 'x2,y2', ...]
+
+            t = [x.split(',') for x in row]  # t: [['x1','y1'], ['x2','y2'], ...]
+
+            t = [(eval(x[0]), eval(x[1])) for x in t]  # t: [(x1,y1), (x2,y2), ...]
+
+            db.append(t)
+            row = f.readline()
+
+    return db

@@ -308,8 +308,7 @@ logger.info(f'Reading {args.dataset} dataset...')
 if args.dataset == 'oldenburg':
     db = dataset.read_brinkhoff(args.dataset)
 elif args.dataset == 'porto':
-    with lzma.open('../data/porto.xz', 'rb') as f:
-        db = pickle.load(f)
+    db = dataset.read_porto(args.dataset)
 elif args.dataset == 'campus':
     with lzma.open('../data/campus.xz','rb') as f:
         db = pickle.load(f)

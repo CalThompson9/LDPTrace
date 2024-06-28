@@ -1,0 +1,238 @@
+
+- The seed has been turned on for this dataset generation. All parameters are listed below.
+
+Dataset Parameters: 
+- Seed: 123
+- Maximum time: 1000
+- Report probability: 1000
+- Obj begin (moving): 500000
+- Obj begin (external): 0
+- Obj time (moving): 0
+- Obj time (external): 0
+- Obj classes (moving): 1
+- Obj classes (external): 0
+- Max speed div: 50
+Synthesizer Parameters:
+- Epsilon: 1.0
+- Grid num: 6
+- Query num: 200
+- Dataset: oldenburg
+- Re-synthesize: True
+- Max length: 0.9
+- Size factor: 9.0
+- Multiprocessing: False
+
+Results:
+2024-06-27 11:00:41,529 Parameters: Namespace(epsilon=1.0, grid_num=6, query_num=200, dataset='oldenburg', re_syn=True, max_len=0.9, size_factor=9.0, multiprocessing=False)
+2024-06-27 11:00:41,529 Reading oldenburg dataset...
+{'num': 500000, 'min_len': 2, 'max_len': 287, 'mean_len': 73.641372, 'min_x': 281.0, 'min_y': 3935.0, 'max_x': 23854.0, 'max_y': 30851.0}
+2024-06-27 11:16:47,090 Convert raw trajectories to grids...
+2024-06-27 11:19:49,309 Quantile: 6
+2024-06-27 11:19:49,309 Updating Markov prob...
+2024-06-27 11:21:29,032 Aggregating...
+2024-06-27 11:21:29,034 Synthesizing...
+2024-06-27 11:23:47,008 Experiment: Density Error...
+2024-06-27 11:23:48,610 Density Error: 0.04926868165629869
+2024-06-27 11:23:48,611 Experiment: Hotspot Query Error...
+2024-06-27 11:23:48,619 Hotspot Query Error: 0.34267308149607967
+2024-06-27 11:23:48,619 Experiment: Query AvRE...
+2024-06-27 11:26:21,050 Point Query AvRE: 0.43522767394153944
+2024-06-27 11:26:21,085 Experiment: Kendall-tau...
+2024-06-27 11:26:39,909 Kendall_tau:0.734920634920635
+2024-06-27 11:26:39,910 Experiment: Trip error...
+2024-06-27 11:26:41,666 Trip error: 0.18682845633488276
+2024-06-27 11:26:41,666 Experiment: Diameter error...
+2024-06-27 11:50:21,783 Diameter error: 0.0016077373370605615
+2024-06-27 11:50:21,788 Experiment: Length error...
+2024-06-27 11:50:46,417 Length error: 0.030555806704218938
+2024-06-27 11:50:46,417 Experiment: Pattern mining errors...
+2024-06-27 11:51:12,201 Pattern F1 error: 0.41
+2024-06-27 11:51:12,201 Pattern support error: 0.7709352865058869
+
+Parameters: 
+- Seed: 123
+- Maximum time: 1000
+- Report probability: 1000
+- Obj begin (moving): 200000
+- Obj begin (external): 0
+- Obj time (moving): 0
+- Obj time (external): 0
+- Obj classes (moving): 1
+- Obj classes (external): 0
+- Max speed div: 50
+Synthesizer Parameters:
+- Epsilon: 1.0
+- Grid num: 6
+- Query num: 200
+- Dataset: oldenburg
+- Re-synthesize: True
+- Max length: 0.9
+- Size factor: 9.0
+- Multiprocessing: False
+
+Results:
+2024-06-27 17:55:02,248 Parameters: Namespace(epsilon=1.0, grid_num=6, query_num=200, dataset='oldenburg', re_syn=True, max_len=0.9, size_factor=9.0, multiprocessing=False)
+2024-06-27 17:55:02,249 Reading oldenburg dataset...
+{'num': 200000, 'min_len': 2, 'max_len': 267, 'mean_len': 72.083935, 'min_x': 281.0, 'min_y': 3935.0, 'max_x': 23854.0, 'max_y': 30851.0}
+2024-06-27 18:01:10,418 Convert raw trajectories to grids...
+2024-06-27 18:02:19,872 Quantile: 5
+2024-06-27 18:02:19,873 Updating Markov prob...
+2024-06-27 18:02:57,254 Aggregating...
+2024-06-27 18:02:57,254 Synthesizing...
+2024-06-27 18:03:48,005 Experiment: Density Error...
+2024-06-27 18:03:48,641 Density Error: 0.0559709912390756
+2024-06-27 18:03:48,642 Experiment: Hotspot Query Error...
+2024-06-27 18:03:48,643 Hotspot Query Error: 0.15709585055413067
+2024-06-27 18:03:48,643 Experiment: Query AvRE...
+2024-06-27 18:04:53,497 Point Query AvRE: 0.48601245455863074
+2024-06-27 18:04:53,498 Experiment: Kendall-tau...
+2024-06-27 18:05:00,656 Kendall_tau:0.5698412698412698
+2024-06-27 18:05:00,657 Experiment: Trip error...
+2024-06-27 18:05:01,319 Trip error: 0.19529630868527983
+2024-06-27 18:05:01,320 Experiment: Diameter error...
+2024-06-27 18:12:24,139 Diameter error: 0.019229405292908244
+2024-06-27 18:12:24,139 Experiment: Length error...
+2024-06-27 18:12:33,327 Length error: 0.04185107881513486
+2024-06-27 18:12:33,328 Experiment: Pattern mining errors...
+2024-06-27 18:12:45,458 Pattern F1 error: 0.25
+2024-06-27 18:12:45,458 Pattern support error: 0.780798370769507
+
+Parameters: 
+- Seed: 123
+- Maximum time: 1000
+- Report probability: 1000
+- Obj begin (moving): 200000
+- Obj begin (external): 0
+- Obj time (moving): 0
+- Obj time (external): 0
+- Obj classes (moving): 1
+- Obj classes (external): 0
+- Max speed div: 50
+Synthesizer Parameters:
+- Epsilon: 0.5
+- Grid num: 6
+- Query num: 200
+- Dataset: oldenburg
+- Re-synthesize: True
+- Max length: 0.9
+- Size factor: 9.0
+- Multiprocessing: False
+
+Results:
+2024-06-27 18:26:08,135 Parameters: Namespace(epsilon=0.5, grid_num=6, query_num=200, dataset='oldenburg', re_syn=True, max_len=0.9, size_factor=9.0, multiprocessing=False)
+2024-06-27 18:26:08,136 Reading oldenburg dataset...
+{'num': 200000, 'min_len': 2, 'max_len': 267, 'mean_len': 72.083935, 'min_x': 281.0, 'min_y': 3935.0, 'max_x': 23854.0, 'max_y': 30851.0}
+2024-06-27 18:31:43,550 Convert raw trajectories to grids...
+2024-06-27 18:32:58,693 Quantile: 5
+2024-06-27 18:32:58,694 Updating Markov prob...
+2024-06-27 18:33:39,738 Aggregating...
+2024-06-27 18:33:39,739 Synthesizing...
+2024-06-27 18:34:51,053 Experiment: Density Error...
+2024-06-27 18:34:51,836 Density Error: 0.0826287902736107
+2024-06-27 18:34:51,837 Experiment: Hotspot Query Error...
+2024-06-27 18:34:51,838 Hotspot Query Error: 0.15709585055413067
+2024-06-27 18:34:51,838 Experiment: Query AvRE...
+2024-06-27 18:36:08,686 Point Query AvRE: 0.9229893904752342
+2024-06-27 18:36:08,687 Experiment: Kendall-tau...
+2024-06-27 18:36:16,735 Kendall_tau:0.4587301587301587
+2024-06-27 18:36:16,736 Experiment: Trip error...
+2024-06-27 18:36:17,446 Trip error: 0.2849491007987726
+2024-06-27 18:36:17,447 Experiment: Diameter error...
+2024-06-27 18:44:12,646 Diameter error: 0.05800541248684647
+2024-06-27 18:44:12,647 Experiment: Length error...
+2024-06-27 18:44:22,957 Length error: 0.07460511179965697
+2024-06-27 18:44:22,957 Experiment: Pattern mining errors...
+2024-06-27 18:44:41,670 Pattern F1 error: 0.20000000000000004
+2024-06-27 18:44:41,671 Pattern support error: 0.8721964683579471
+
+Parameters: 
+- Seed: 123
+- Maximum time: 1000
+- Report probability: 1000
+- Obj begin (moving): 200000
+- Obj begin (external): 0
+- Obj time (moving): 0
+- Obj time (external): 0
+- Obj classes (moving): 1
+- Obj classes (external): 0
+- Max speed div: 50
+Synthesizer Parameters:
+- Epsilon: 1.5
+- Grid num: 6
+- Query num: 200
+- Dataset: oldenburg
+- Re-synthesize: True
+- Max length: 0.9
+- Size factor: 9.0
+- Multiprocessing: False
+
+Results:
+2024-06-27 18:45:39,092 Parameters: Namespace(epsilon=1.5, grid_num=6, query_num=200, dataset='oldenburg', re_syn=True, max_len=0.9, size_factor=9.0, multiprocessing=False)
+2024-06-27 18:45:39,093 Reading oldenburg dataset...
+{'num': 200000, 'min_len': 2, 'max_len': 267, 'mean_len': 72.083935, 'min_x': 281.0, 'min_y': 3935.0, 'max_x': 23854.0, 'max_y': 30851.0}
+2024-06-27 18:51:10,684 Convert raw trajectories to grids...
+2024-06-27 18:52:24,893 Quantile: 6
+2024-06-27 18:52:24,894 Updating Markov prob...
+2024-06-27 18:53:08,764 Aggregating...
+2024-06-27 18:53:08,765 Synthesizing...
+2024-06-27 18:54:00,220 Experiment: Density Error...
+2024-06-27 18:54:00,983 Density Error: 0.06190600618242262
+2024-06-27 18:54:00,984 Experiment: Hotspot Query Error...
+2024-06-27 18:54:00,985 Hotspot Query Error: 0.3216475167993348
+2024-06-27 18:54:00,986 Experiment: Query AvRE...
+2024-06-27 18:55:08,201 Point Query AvRE: 0.5112020389873717
+2024-06-27 18:55:08,201 Experiment: Kendall-tau...
+2024-06-27 18:55:16,770 Kendall_tau:0.6460317460317461
+2024-06-27 18:55:16,771 Experiment: Trip error...
+2024-06-27 18:55:17,533 Trip error: 0.1698637829277183
+2024-06-27 18:55:17,534 Experiment: Diameter error...
+2024-06-27 19:03:22,983 Diameter error: 0.01175770024410355
+2024-06-27 19:03:22,983 Experiment: Length error...
+2024-06-27 19:03:33,143 Length error: 0.03461717243084659
+2024-06-27 19:03:33,143 Experiment: Pattern mining errors...
+2024-06-27 19:03:45,834 Pattern F1 error: 0.37
+2024-06-27 19:03:45,835 Pattern support error: 0.7592376702174631
+
+Parameters: 
+- Seed: 12345
+- Maximum time: 1000
+- Report probability: 1000
+- Obj begin (moving): 500000
+- Obj begin (external): 0
+- Obj time (moving): 0
+- Obj time (external): 0
+- Obj classes (moving): 1
+- Obj classes (external): 0
+- Max speed div: 50
+Synthesizer Parameters:
+- Epsilon: 1.0
+- Grid num: 6
+- Query num: 200
+- Dataset: oldenburg
+- Re-synthesize: True
+- Max length: 0.9
+- Size factor: 9.0
+- Multiprocessing: False
+
+Results:
+2024-06-27 19:46:59,608 Parameters: Namespace(epsilon=1.0, grid_num=6, query_num=200, dataset='oldenburg', re_syn=True, max_len=0.9, size_factor=9.0, multiprocessing=False)
+2024-06-27 19:46:59,609 Reading oldenburg dataset...
+{'num': 500000, 'min_len': 2, 'max_len': 286, 'mean_len': 73.651154, 'min_x': 281.0, 'min_y': 3935.0, 'max_x': 23854.0, 'max_y': 30851.0}
+2024-06-27 20:04:44,767 Convert raw trajectories to grids...
+2024-06-27 20:08:03,268 Quantile: 6
+2024-06-27 20:08:03,269 Updating Markov prob...
+2024-06-27 20:09:54,129 Aggregating...
+2024-06-27 20:09:54,131 Synthesizing...
+2024-06-27 20:12:06,819 Experiment: Density Error...
+2024-06-27 20:12:08,486 Density Error: 0.03209818673885893
+2024-06-27 20:12:08,487 Experiment: Hotspot Query Error...
+2024-06-27 20:12:08,489 Hotspot Query Error: 0.3109296876576463
+2024-06-27 20:12:08,489 Experiment: Query AvRE...
+2024-06-27 20:14:54,299 Point Query AvRE: 0.36398587325139387
+2024-06-27 20:14:54,300 Experiment: Kendall-tau...
+2024-06-27 20:15:13,614 Kendall_tau:0.7412698412698413
+2024-06-27 20:15:13,614 Experiment: Trip error...
+2024-06-27 20:15:15,323 Trip error: 0.13928923703803647
+2024-06-27 20:36:59,438 Experiment: Pattern mining errors...
+2024-06-27 20:37:30,015 Pattern F1 error: 0.38
+2024-06-27 20:37:30,016 Pattern support error: 0.7263677431970111
