@@ -310,8 +310,7 @@ if args.dataset == 'oldenburg':
 elif args.dataset == 'porto':
     db = dataset.read_porto(args.dataset)
 elif args.dataset == 'campus':
-    with lzma.open('../data/campus.xz','rb') as f:
-        db = pickle.load(f)
+    db = dataset.read_campus(args.dataset)
 else:
     logger.info(f'Invalid dataset: {args.dataset}')
     db = None

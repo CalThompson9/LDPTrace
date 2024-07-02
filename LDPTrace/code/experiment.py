@@ -242,8 +242,15 @@ def calculate_pattern_f1_error(orig_pattern,
 
     precision = count / k
     recall = count / k
+    print("Checking precision and recall for errors...")
+    print("Count: ", count)
+    print("Precision: ", precision)
+    print("Recall: ", recall)
 
-    return 2 * precision * recall / (precision + recall)
+    try:
+        return 2 * precision * recall / (precision + recall)
+    except ZeroDivisionError:
+        return 0
 
 
 def calculate_hotspot_ndcg(orig_density, syn_density, k=5):
