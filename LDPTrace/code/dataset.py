@@ -1,3 +1,4 @@
+import logging
 from typing import List, Tuple
 import numpy as np
 import json
@@ -128,6 +129,9 @@ def read_porto(dataset='porto'):
     """
     db = []
     file_name = f'../data/{dataset}.dat'
+    
+    logging.info(f"Reading dataset from {file_name}...")
+    
     with open(file_name, 'r') as f:
         row = f.readline()
         while row:
@@ -135,19 +139,39 @@ def read_porto(dataset='porto'):
                 row = f.readline()
                 continue
             if not row[0] == '>':
-                print(row)
+                logging.error(f"Unexpected format: {row}")
                 exit()
             # Skip '>0:' and ';\n' in the end
             row = row[3:-2].split(';')  # row: ['x1,y1', 'x2,y2', ...]
+            
+            if not row[0]:
+                logging.warning(f"Empty trajectory data found, skipping: {row}")
+                row = f.readline()
+                continue
 
             t = [x.split(',') for x in row]  # t: [['x1','y1'], ['x2','y2'], ...]
 
-            t = [(eval(x[0]), eval(x[1])) for x in t]  # t: [(x1,y1), (x2,y2), ...]
+            valid_points = []
+            for coords in t:
+                if len(coords) != 2:
+                    logging.error(f"Invalid coordinates: {coords}")
+                    continue
+                try:
+                    x = float(coords[0])
+                    y = float(coords[1])
+                    valid_points.append((x, y))
+                except ValueError as e:
+                    logging.error(f"Error converting to float in row {coords}: {e}")
+                    continue
 
-            db.append(t)
+            if valid_points:
+                db.append(valid_points)
             row = f.readline()
 
+    logging.info(f"Finished reading dataset. Total trajectories: {len(db)}")
+    
     return db
+
 
 # ----- CODE TO READ CAMPUS DATASET -----
 def read_campus(dataset='campus'):

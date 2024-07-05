@@ -19,8 +19,13 @@ for index, row in df.iterrows():
     if trajectory_id not in trajectories:
         trajectories[trajectory_id] = []
     
-    trajectories[trajectory_id].append(source_coords)
-    trajectories[trajectory_id].append(target_coords)
+    # Add source coordinates if not already added
+    if not trajectories[trajectory_id] or trajectories[trajectory_id][-1] != source_coords:
+        trajectories[trajectory_id].append(source_coords)
+    
+    # Add target coordinates if not already added
+    if trajectories[trajectory_id][-1] != target_coords:
+        trajectories[trajectory_id].append(target_coords)
 
 # Remove duplicate points within each trajectory
 for trajectory_id in trajectories:
@@ -30,4 +35,4 @@ for trajectory_id in trajectories:
 with open('../data/porto.dat', 'w') as file:
     for i, (trajectory_id, points) in enumerate(trajectories.items()):
         file.write(f"#{i}:\n")
-        file.write(f">0: {'; '.join(points)}\n")
+        file.write(f">0: {'; '.join(points)};\n")
