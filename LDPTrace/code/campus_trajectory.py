@@ -42,7 +42,7 @@ poi_categories = buildings_df.groupby('usage')['uid'].apply(list).to_dict()
 poi_coordinates = buildings_df.set_index('uid')['coordinates'].to_dict()
 
 # Set parameters
-num_trajectories = 1000000  # Number of trajectories
+num_trajectories = 10000  # Number of trajectories
 trajectory_length_bounds = (3, 8)  # Trajectory length bounds
 time_bounds = (10, 120)  # Time gap bounds in minutes
 start_time_bounds = (6, 22)  # Start time bounds in hours
