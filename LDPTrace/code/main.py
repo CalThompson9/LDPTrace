@@ -1,7 +1,5 @@
 from typing import List, Tuple, Dict
-
 import numpy as np
-
 import trajectory
 import ldp
 from grid import GridMap, Grid
@@ -14,9 +12,9 @@ import dataset
 import pickle
 import random
 import lzma
-
 from logger.logger import ConfigParser
 import multiprocessing
+
 np.random.seed(2022)
 random.seed(2022)
 CORES = multiprocessing.cpu_count() // 2
@@ -26,9 +24,7 @@ logger = config.get_logger(config.exper_name)
 
 logger.info(f'Parameters: {args}')
 
-
 # ======================= CONVERTING FUNCTIONS ======================= #
-
 
 def convert_raw_to_grid(raw_trajectories: List[List[Tuple[float, float]]],
                         interp=True):
@@ -37,15 +33,11 @@ def convert_raw_to_grid(raw_trajectories: List[List[Tuple[float, float]]],
                for t in raw_trajectories]
     return grid_db
 
-
 def convert_grid_to_raw(grid_db: List[List[Grid]]):
     raw_trajectories = [trajectory.trajectory_grid2points(g_t) for g_t in grid_db]
-
     return raw_trajectories
 
-
 # =============================== END ================================ #
-
 
 # ======================= LDP UPDATE FUNCTIONS ======================= #
 
@@ -74,7 +66,6 @@ def estimate_max_length(grid_db: List[List[Grid]], epsilon):
             break
 
     return ldp_server, quantile
-
 
 def update_markov_prob(grid_db: List[List[Grid]], epsilon, max_len=36):
     ldp_server = ldp.OUEServer(epsilon / (max_len+1), grid_map.size * 8,
@@ -114,9 +105,7 @@ def update_markov_prob(grid_db: List[List[Grid]], epsilon, max_len=36):
     end_server.adjust()
     return ldp_server, start_server, end_server
 
-
 # =============================== END ================================ #
-
 
 # ======================== AGGREGATE FUNCTIONS ======================= #
 
@@ -162,9 +151,7 @@ def generate_markov_matrix(markov_vec: np.ndarray, start_vec, end_vec):
     markov_mat = markov_mat / (markov_mat.sum(axis=1).reshape((-1, 1)) + 1e-8)
     return markov_mat
 
-
 # =============================== END ================================ #
-
 
 # ======================== SAMPLING FUNCTIONS ======================== #
 
@@ -173,19 +160,13 @@ def sample_start_point(markov_mat: np.ndarray):
     N^2+1th row: virtual start -> other
     """
     prob = markov_mat[-1]
-
     sample_id = np.random.choice(np.arange(grid_map.size), p=prob[:-1])
-
     return map_func.grid_index_inv_func(sample_id, grid_map)
-
 
 def sample_length(length_dis: np.ndarray):
     prob = length_dis / np.sum(length_dis)
-
     length = np.random.choice(np.arange(len(length_dis)), p=prob)
-
     return length + 1
-
 
 def sample_markov_next(one_level_mat: np.ndarray,
                        prev_grid: Grid,
@@ -197,46 +178,33 @@ def sample_markov_next(one_level_mat: np.ndarray,
     :return: next grid
     """
     candidates = grid_map.get_adjacent(prev_grid)
-
     candidate_probabilities = np.zeros(len(candidates) + 1, dtype=float)
-
     for k, (i, j) in enumerate(candidates):
         # Calculate P(Candidate|T[0 ~ k-1]) using 1-level matrix
         row = map_func.grid_index_map_func(prev_grid, grid_map)
         col = map_func.grid_index_map_func(grid_map.map[i][j], grid_map)
         prob1 = one_level_mat[row][col]
-
         if np.isnan(prob1):
             candidate_probabilities[k] = 0
         else:
             candidate_probabilities[k] = prob1
-
     # Virtual end point
     row = map_func.grid_index_map_func(prev_grid, grid_map)
     col = -1
     prob1 = one_level_mat[row][col]
-
     prob1 *= min(1.0, 0.3 + (length - 1) * 0.2)
-
     candidate_probabilities[-1] = prob1
-
     if candidate_probabilities.sum() < 0.00001:
         return prev_grid
-
     candidate_probabilities = candidate_probabilities / candidate_probabilities.sum()
-
     sample_id = np.random.choice(np.arange(len(candidate_probabilities)), p=candidate_probabilities)
-
     # End
     if sample_id == len(candidate_probabilities) - 1:
         return prev_grid
-
     i, j = candidates[sample_id]
     return grid_map.map[i][j]
 
-
 # =============================== END ================================ #
-
 
 def generate_synthetic_database(length_dis: np.ndarray,
                                 markov_mat: np.ndarray,
@@ -256,7 +224,6 @@ def generate_synthetic_database(length_dis: np.ndarray,
     for i in range(size):
         # Sample start point
         start_grid = sample_start_point(markov_mat)
-
         # Sample length
         length = sample_length(length_dis)
         syn_trajectory = [start_grid]
@@ -268,18 +235,14 @@ def generate_synthetic_database(length_dis: np.ndarray,
             # Virtual end point
             if next_grid.equal(prev_grid):
                 break
-
             syn_trajectory.append(next_grid)
         synthetic_db.append(syn_trajectory)
-
     return synthetic_db
-
 
 def get_start_end_dist(grid_db: List[List[Grid]]):
     dist = np.zeros(grid_map.size * grid_map.size)
     start_dist = np.zeros(grid_map.size)
     end_dist = np.zeros(grid_map.size)
-
     for g_t in grid_db:
         start = g_t[0]
         end = g_t[-1]
@@ -289,148 +252,195 @@ def get_start_end_dist(grid_db: List[List[Grid]]):
         start_dist[start_index] += 1
         end_index = map_func.grid_index_map_func(end, grid_map)
         end_dist[end_index] += 1
-
     return dist, start_dist, end_dist
-
 
 def get_real_density(grid_db: List[List[Grid]]):
     real_dens = np.zeros(grid_map.size)
-
     for t in grid_db:
         for g in t:
             index = map_func.grid_index_map_func(g, grid_map)
             real_dens[index] += 1
-
     return real_dens
 
-
-logger.info(f'Reading {args.dataset} dataset...')
-if args.dataset == 'oldenburg':
-    db = dataset.read_brinkhoff(args.dataset)
-elif args.dataset == 'porto':
-    with lzma.open('../data/porto.xz', 'rb') as f:
-        db = pickle.load(f)
-elif args.dataset == 'campus':
-    with lzma.open('../data/campus.xz','rb') as f:
-        db = pickle.load(f)
-else:
-    logger.info(f'Invalid dataset: {args.dataset}')
-    db = None
-    exit()
-
-random.shuffle(db)
-
-stats = dataset.dataset_stats(db, f'../data/{args.dataset}_stats.json')
-
-grid_map = GridMap(args.grid_num,
-                   stats['min_x'],
-                   stats['min_y'],
-                   stats['max_x'],
-                   stats['max_y'])
-
-logger.info('Convert raw trajectories to grids...')
-grid_trajectories = convert_raw_to_grid(db)
-
-if args.re_syn:
-    length_server, quantile = estimate_max_length(grid_trajectories, args.epsilon / 10)
-    logger.info(f'Quantile: {quantile}')
-
-    logger.info('Updating Markov prob...')
-    markov_servers = update_markov_prob(grid_trajectories, 9 * args.epsilon / 10, max_len=quantile)
-
-    logger.info('Aggregating...')
-
-    one_level_mat = generate_markov_matrix(markov_servers[0].adjusted_data,
-                                           markov_servers[1].adjusted_data,
-                                           markov_servers[2].adjusted_data)
-
-    logger.info('Synthesizing...')
-    synthetic_database = generate_synthetic_database(length_server.adjusted_data,
-                                                     one_level_mat,
-                                                     len(db))
-
-    synthetic_trajectories = convert_grid_to_raw(synthetic_database)
-
-    with open(f'../data/{args.dataset}/syn_{args.dataset}_eps_{args.epsilon}_max_{args.max_len}_grid_{args.grid_num}.pkl', 'wb') as f:
-        pickle.dump(synthetic_trajectories, f)
-
-    synthetic_grid_trajectories = synthetic_database
-
-else:
-    try:
-        logger.info('Reading saved synthetic database...')
-        with open(f'../data/{args.dataset}/syn_{args.dataset}_eps_{args.epsilon}_max_{args.max_len}_grid_{args.grid_num}.pkl',
-                  'rb') as f:
-            synthetic_trajectories = pickle.load(f)
-        synthetic_grid_trajectories = convert_raw_to_grid(synthetic_trajectories)
-    except FileNotFoundError:
-        logger.info('Synthesized file not found! Use --re_syn')
+# Function to run the main logic
+def run_experiment():
+    logger.info(f'Reading {args.dataset} dataset...')
+    if args.dataset == 'oldenburg':
+        db = dataset.read_brinkhoff(args.dataset)
+    elif args.dataset == 'porto':
+        with lzma.open('../data/porto.xz', 'rb') as f:
+            db = pickle.load(f)
+    elif args.dataset == 'campus':
+        with lzma.open('../data/campus.xz', 'rb') as f:
+            db = pickle.load(f)
+    else:
+        logger.info(f'Invalid dataset: {args.dataset}')
+        db = None
         exit()
 
-orig_trajectories = db
-orig_grid_trajectories = grid_trajectories
-orig_sampled_trajectories = convert_grid_to_raw(orig_grid_trajectories)
+    random.shuffle(db)
+    stats = dataset.dataset_stats(db, f'../data/{args.dataset}_stats.json')
 
-# ============================ EXPERIMENTS =========================== #
-np.random.seed(2022)
-random.seed(2022)
-logger.info('Experiment: Density Error...')
-orig_density = get_real_density(orig_grid_trajectories)
-syn_density = get_real_density(synthetic_grid_trajectories)
-orig_density /= np.sum(orig_density)
-syn_density /= np.sum(syn_density)
-density_error = utils.jensen_shannon_distance(orig_density, syn_density)
-logger.info(f'Density Error: {density_error}')
+    global grid_map  # Add this line to ensure grid_map is used globally
+    grid_map = GridMap(args.grid_num,
+                       stats['min_x'],
+                       stats['min_y'],
+                       stats['max_x'],
+                       stats['max_y'])
 
-logger.info('Experiment: Hotspot Query Error...')
-hotspot_ndcg = experiment.calculate_hotspot_ndcg(orig_density, syn_density)
-logger.info(f'Hotspot Query Error: {1-hotspot_ndcg}')
-# Query AvRE
-logger.info('Experiment: Query AvRE...')
+    logger.info('Convert raw trajectories to grids...')
+    grid_trajectories = convert_raw_to_grid(db)
 
-queries = [SquareQuery(grid_map.min_x, grid_map.min_y, grid_map.max_x, grid_map.max_y, size_factor=args.size_factor) for _ in range(args.query_num)]
+    if args.re_syn:
+        length_server, quantile = estimate_max_length(grid_trajectories, args.epsilon / 10)
+        logger.info(f'Quantile: {quantile}')
 
-query_error = experiment.calculate_point_query(orig_sampled_trajectories,
-                                               synthetic_trajectories,
-                                               queries)
-logger.info(f'Point Query AvRE: {query_error}')
+        logger.info('Updating Markov prob...')
+        markov_servers = update_markov_prob(grid_trajectories, 9 * args.epsilon / 10, max_len=quantile)
 
-# Location coverage Kendall-tau
-logger.info('Experiment: Kendall-tau...')
-kendall_tau = experiment.calculate_coverage_kendall_tau(orig_grid_trajectories,
-                                                        synthetic_grid_trajectories,
-                                                        grid_map)
-logger.info(f'Kendall_tau:{kendall_tau}')
+        logger.info('Aggregating...')
 
-# Trip error
-logger.info('Experiment: Trip error...')
-orig_trip_dist, _, _ = get_start_end_dist(orig_grid_trajectories)
-syn_trip_dist, _, _ = get_start_end_dist(synthetic_grid_trajectories)
+        one_level_mat = generate_markov_matrix(markov_servers[0].adjusted_data,
+                                               markov_servers[1].adjusted_data,
+                                               markov_servers[2].adjusted_data)
 
-orig_trip_dist = np.asarray(orig_trip_dist) / np.sum(orig_trip_dist)
-syn_trip_dist = np.asarray(syn_trip_dist) / np.sum(syn_trip_dist)
-trip_error = utils.jensen_shannon_distance(orig_trip_dist, syn_trip_dist)
-logger.info(f'Trip error: {trip_error}')
+        logger.info('Synthesizing...')
+        synthetic_database = generate_synthetic_database(length_server.adjusted_data,
+                                                         one_level_mat,
+                                                         len(db))
 
-# Diameter error
-logger.info('Experiment: Diameter error...')
-diameter_error = experiment.calculate_diameter_error(orig_trajectories, synthetic_trajectories,
-                                                     multi=args.multiprocessing)
-logger.info(f'Diameter error: {diameter_error}')
+        synthetic_trajectories = convert_grid_to_raw(synthetic_database)
 
-# Length error
-logger.info('Experiment: Length error...')
-length_error = experiment.calculate_length_error(orig_trajectories, synthetic_trajectories)
-logger.info(f'Length error: {length_error}')
+        with open(f'../data/{args.dataset}/syn_{args.dataset}_eps_{args.epsilon}_max_{args.max_len}_grid_{args.grid_num}.pkl', 'wb') as f:
+            pickle.dump(synthetic_trajectories, f)
 
-# Pattern mining errors
-logger.info('Experiment: Pattern mining errors...')
-orig_pattern = experiment.mine_patterns(orig_grid_trajectories)
-syn_pattern = experiment.mine_patterns(synthetic_grid_trajectories)
+        synthetic_grid_trajectories = synthetic_database
 
-pattern_f1_error = experiment.calculate_pattern_f1_error(orig_pattern, syn_pattern)
-pattern_support_error = experiment.calculate_pattern_support(orig_pattern, syn_pattern)
+    else:
+        try:
+            logger.info('Reading saved synthetic database...')
+            with open(f'../data/{args.dataset}/syn_{args.dataset}_eps_{args.epsilon}_max_{args.max_len}_grid_{args.grid_num}.pkl',
+                      'rb') as f:
+                synthetic_trajectories = pickle.load(f)
+            synthetic_grid_trajectories = convert_raw_to_grid(synthetic_trajectories)
+        except FileNotFoundError:
+            logger.info('Synthesized file not found! Use --re_syn')
+            exit()
 
-logger.info(f'Pattern F1 error: {pattern_f1_error}')
-logger.info(f'Pattern support error: {pattern_support_error}')
+    orig_trajectories = db
+    orig_grid_trajectories = grid_trajectories
+    orig_sampled_trajectories = convert_grid_to_raw(orig_grid_trajectories)
+
+    # ============================ EXPERIMENTS =========================== #
+    np.random.seed(2022)
+    random.seed(2022)
+    logger.info('Experiment: Density Error...')
+    orig_density = get_real_density(orig_grid_trajectories)
+    syn_density = get_real_density(synthetic_grid_trajectories)
+    orig_density /= np.sum(orig_density)
+    syn_density /= np.sum(syn_density)
+    density_error = utils.jensen_shannon_distance(orig_density, syn_density)
+    logger.info(f'Density Error: {density_error}')
+
+    logger.info('Experiment: Hotspot Query Error...')
+    hotspot_ndcg = experiment.calculate_hotspot_ndcg(orig_density, syn_density)
+    logger.info(f'Hotspot Query Error: {1-hotspot_ndcg}')
+    # Query AvRE
+    logger.info('Experiment: Query AvRE...')
+
+    queries = [SquareQuery(grid_map.min_x, grid_map.min_y, grid_map.max_x, grid_map.max_y, size_factor=args.size_factor) for _ in range(args.query_num)]
+
+    query_error = experiment.calculate_point_query(orig_sampled_trajectories,
+                                                   synthetic_trajectories,
+                                                   queries)
+    logger.info(f'Point Query AvRE: {query_error}')
+
+    # Location coverage Kendall-tau
+    logger.info('Experiment: Kendall-tau...')
+    kendall_tau = experiment.calculate_coverage_kendall_tau(orig_grid_trajectories,
+                                                            synthetic_grid_trajectories,
+                                                            grid_map)
+    logger.info(f'Kendall_tau:{kendall_tau}')
+
+    # Trip error
+    logger.info('Experiment: Trip error...')
+    orig_trip_dist, _, _ = get_start_end_dist(orig_grid_trajectories)
+    syn_trip_dist, _, _ = get_start_end_dist(synthetic_grid_trajectories)
+
+    orig_trip_dist = np.asarray(orig_trip_dist) / np.sum(orig_trip_dist)
+    syn_trip_dist = np.asarray(syn_trip_dist) / np.sum(syn_trip_dist)
+    trip_error = utils.jensen_shannon_distance(orig_trip_dist, syn_trip_dist)
+    logger.info(f'Trip error: {trip_error}')
+
+    # Diameter error
+    logger.info('Experiment: Diameter error...')
+    diameter_error = experiment.calculate_diameter_error(orig_trajectories, synthetic_trajectories,
+                                                         multi=args.multiprocessing)
+    logger.info(f'Diameter error: {diameter_error}')
+
+    # Length error
+    logger.info('Experiment: Length error...')
+    length_error = experiment.calculate_length_error(orig_trajectories, synthetic_trajectories)
+    logger.info(f'Length error: {length_error}')
+
+    # Pattern mining errors
+    logger.info('Experiment: Pattern mining errors...')
+    orig_pattern = experiment.mine_patterns(orig_grid_trajectories)
+    syn_pattern = experiment.mine_patterns(synthetic_grid_trajectories)
+
+    pattern_f1_error = experiment.calculate_pattern_f1_error(orig_pattern, syn_pattern)
+    pattern_support_error = experiment.calculate_pattern_support(orig_pattern, syn_pattern)
+
+    logger.info(f'Pattern F1 error: {pattern_f1_error}')
+    logger.info(f'Pattern support error: {pattern_support_error}')
+
+    return {
+        'density_error': density_error,
+        'hotspot_query_error': 1-hotspot_ndcg,
+        'query_error': query_error,
+        'kendall_tau': kendall_tau,
+        'trip_error': trip_error,
+        'diameter_error': diameter_error,
+        'length_error': length_error,
+        'pattern_f1_error': pattern_f1_error,
+        'pattern_support_error': pattern_support_error
+    }
+
+# Define your target conditions based on the paper
+TARGET_METRICS = {
+    'density_error': 0.01,  
+    'hotspot_query_error': 0.06,
+    'query_error': 0.26,
+    'kendall_tau': 0.8,
+    'trip_error': 0.1,
+    'diameter_error': 0.1,
+    'length_error': 0.1,
+    'pattern_f1_error': 0.6,
+    'pattern_support_error': 0.6
+}
+
+# Define the fraction of metrics that need to be met
+REQUIRED_FRACTION = 0.75
+
+# Loop until the required fraction of conditions are met
+iteration = 0
+while True:
+    iteration += 1
+    logger.info(f'Starting iteration {iteration}...')
+    metrics = run_experiment()
+    logger.info(f'Iteration {iteration} metrics: {metrics}')
+
+    # Count the number of metrics that meet the target
+    satisfied_metrics = sum(1 for key in TARGET_METRICS 
+                            if (metrics[key] <= TARGET_METRICS[key] if 'error' in key else metrics[key] >= TARGET_METRICS[key]))
+
+    # Calculate the fraction of satisfied metrics
+    satisfied_fraction = satisfied_metrics / len(TARGET_METRICS)
+
+    # Check if the satisfied fraction meets or exceeds the required fraction
+    if satisfied_fraction >= REQUIRED_FRACTION:
+        logger.info(f'{satisfied_fraction:.2%} of target metrics met.')
+        break
+    else:
+        logger.info(f'Only {satisfied_fraction:.2%} of target metrics met, running again...')
 

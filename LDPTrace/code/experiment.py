@@ -242,7 +242,9 @@ def calculate_pattern_f1_error(orig_pattern,
 
     precision = count / k
     recall = count / k
-
+    
+    if precision + recall == 0:
+        return 0
     return 2 * precision * recall / (precision + recall)
 
 
