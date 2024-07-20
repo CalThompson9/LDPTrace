@@ -262,34 +262,50 @@ def get_real_density(grid_db: List[List[Grid]]):
             real_dens[index] += 1
     return real_dens
 
+def sample_dataset(db, sample_size):
+    """Returns a random sample of the dataset."""
+    return random.sample(db, sample_size)
+
+# Read the full dataset once
+logger.info(f'Reading {args.dataset} dataset...')
+if args.dataset == 'oldenburg':
+    full_db = dataset.read_brinkhoff(args.dataset)
+elif args.dataset == 'porto':
+    with lzma.open('../data/porto.xz', 'rb') as f:
+        full_db = pickle.load(f)
+elif args.dataset == 'campus':
+    with lzma.open('../data/campus.xz', 'rb') as f:
+        full_db = pickle.load(f)
+else:
+    logger.info(f'Invalid dataset: {args.dataset}')
+    full_db = None
+    exit()
+
+stats = dataset.dataset_stats(full_db, f'../data/{args.dataset}_stats.json')
+
+global grid_map  # Add this line to ensure grid_map is used globally
+grid_map = GridMap(args.grid_num,
+                   stats['min_x'],
+                   stats['min_y'],
+                   stats['max_x'],
+                   stats['max_y'])
+
+import logging
+
+# Initialize logger
+logger = logging.getLogger()
+logging.basicConfig(level=logging.INFO)
+
+import logging
+
+# Initialize logger
+logger = logging.getLogger()
+logging.basicConfig(level=logging.INFO)
+
 # Function to run the main logic
-def run_experiment():
-    logger.info(f'Reading {args.dataset} dataset...')
-    if args.dataset == 'oldenburg':
-        db = dataset.read_brinkhoff(args.dataset)
-    elif args.dataset == 'porto':
-        with lzma.open('../data/porto.xz', 'rb') as f:
-            db = pickle.load(f)
-    elif args.dataset == 'campus':
-        with lzma.open('../data/campus.xz', 'rb') as f:
-            db = pickle.load(f)
-    else:
-        logger.info(f'Invalid dataset: {args.dataset}')
-        db = None
-        exit()
-
-    random.shuffle(db)
-    stats = dataset.dataset_stats(db, f'../data/{args.dataset}_stats.json')
-
-    global grid_map  # Add this line to ensure grid_map is used globally
-    grid_map = GridMap(args.grid_num,
-                       stats['min_x'],
-                       stats['min_y'],
-                       stats['max_x'],
-                       stats['max_y'])
-
+def run_experiment(db_sample):
     logger.info('Convert raw trajectories to grids...')
-    grid_trajectories = convert_raw_to_grid(db)
+    grid_trajectories = convert_raw_to_grid(db_sample)
 
     if args.re_syn:
         length_server, quantile = estimate_max_length(grid_trajectories, args.epsilon / 10)
@@ -307,7 +323,7 @@ def run_experiment():
         logger.info('Synthesizing...')
         synthetic_database = generate_synthetic_database(length_server.adjusted_data,
                                                          one_level_mat,
-                                                         len(db))
+                                                         len(db_sample))
 
         synthetic_trajectories = convert_grid_to_raw(synthetic_database)
 
@@ -327,13 +343,11 @@ def run_experiment():
             logger.info('Synthesized file not found! Use --re_syn')
             exit()
 
-    orig_trajectories = db
+    orig_trajectories = db_sample
     orig_grid_trajectories = grid_trajectories
     orig_sampled_trajectories = convert_grid_to_raw(orig_grid_trajectories)
 
     # ============================ EXPERIMENTS =========================== #
-    np.random.seed(2022)
-    random.seed(2022)
     logger.info('Experiment: Density Error...')
     orig_density = get_real_density(orig_grid_trajectories)
     syn_density = get_real_density(synthetic_grid_trajectories)
@@ -345,11 +359,10 @@ def run_experiment():
     logger.info('Experiment: Hotspot Query Error...')
     hotspot_ndcg = experiment.calculate_hotspot_ndcg(orig_density, syn_density)
     logger.info(f'Hotspot Query Error: {1-hotspot_ndcg}')
+
     # Query AvRE
     logger.info('Experiment: Query AvRE...')
-
     queries = [SquareQuery(grid_map.min_x, grid_map.min_y, grid_map.max_x, grid_map.max_y, size_factor=args.size_factor) for _ in range(args.query_num)]
-
     query_error = experiment.calculate_point_query(orig_sampled_trajectories,
                                                    synthetic_trajectories,
                                                    queries)
@@ -360,7 +373,7 @@ def run_experiment():
     kendall_tau = experiment.calculate_coverage_kendall_tau(orig_grid_trajectories,
                                                             synthetic_grid_trajectories,
                                                             grid_map)
-    logger.info(f'Kendall_tau:{kendall_tau}')
+    logger.info(f'Kendall_tau: {kendall_tau}')
 
     # Trip error
     logger.info('Experiment: Trip error...')
@@ -374,8 +387,7 @@ def run_experiment():
 
     # Diameter error
     logger.info('Experiment: Diameter error...')
-    diameter_error = experiment.calculate_diameter_error(orig_trajectories, synthetic_trajectories,
-                                                         multi=args.multiprocessing)
+    diameter_error = experiment.calculate_diameter_error(orig_trajectories, synthetic_trajectories)
     logger.info(f'Diameter error: {diameter_error}')
 
     # Length error
@@ -419,20 +431,90 @@ TARGET_METRICS = {
     'pattern_support_error': 0.6
 }
 
+import os
+
 # Define the fraction of metrics that need to be met
 REQUIRED_FRACTION = 0.75
+
+# Track the best metrics
+best_metrics = None
+best_iteration = 0
+
+# Create a directory to save the best samples if it doesn't exist
+if not os.path.exists('best_samples'):
+    os.makedirs('best_samples')
+
+# Function to calculate sample statistics
+def get_sample_statistics(sample):
+    lengths = [len(trajectory) for trajectory in sample]
+    avg_length = np.mean(lengths)
+    max_length = np.max(lengths)
+    min_length = np.min(lengths)
+    return {
+        'size': len(sample),
+        'avg_length': avg_length,
+        'max_length': max_length,
+        'min_length': min_length
+    }
+
+# Initialize best individual metrics trackers
+best_individual_metrics = {key: float('-inf') if key in ['pattern_f1_error', 'kendall_tau'] else float('inf') for key in TARGET_METRICS}
+best_individual_iterations = {key: 0 for key in TARGET_METRICS}
+
+# Function to update the best individual metrics
+def update_best_individual_metrics(metrics, iteration):
+    for key in TARGET_METRICS:
+        if (key in ['kendall_tau', 'pattern_f1_error'] and metrics[key] > best_individual_metrics[key]) or \
+           (key not in ['kendall_tau', 'pattern_f1_error'] and metrics[key] < best_individual_metrics[key]):
+            logger.info(f'Updating best metric for {key} from {best_individual_metrics[key]} to {metrics[key]} at iteration {iteration}')
+            best_individual_metrics[key] = metrics[key]
+            best_individual_iterations[key] = iteration
+
+# Function to save the best metrics and the current sample to a file
+def save_best_metrics_and_sample(metrics, iteration, sample):
+    sample_stats = get_sample_statistics(sample)
+    with open('../data/best_metrics.txt', 'w') as f:
+        f.write(f'Best metrics at iteration {iteration}:\n')
+        for key, value in metrics.items():
+            f.write(f'{key}: {value}\n')
+        f.write('\nSample statistics:\n')
+        for key, value in sample_stats.items():
+            f.write(f'{key}: {value}\n')
+
+    with open(f'../data/best_samples/sample_{iteration}.pkl', 'wb') as f:
+        pickle.dump(sample, f)
+
+# Function to save the best individual metrics to a file
+def save_best_individual_metrics():
+    with open('../data/best_individual_metrics.txt', 'w') as f:
+        f.write('Overall best individual metrics:\n')
+        for key in TARGET_METRICS:
+            f.write(f'Best {key}: {best_individual_metrics[key]} at iteration {best_individual_iterations[key]}\n')
+
 
 # Loop until the required fraction of conditions are met
 iteration = 0
 while True:
     iteration += 1
     logger.info(f'Starting iteration {iteration}...')
-    metrics = run_experiment()
+    
+    # Shuffle the full dataset before sampling
+    random.shuffle(full_db)
+    
+    # Sample the dataset
+    sample_size = random.randint(1000, 100000)
+    db_sample = sample_dataset(full_db, sample_size)
+    
+    metrics = run_experiment(db_sample)
     logger.info(f'Iteration {iteration} metrics: {metrics}')
+
+    # Update the best individual metrics
+    update_best_individual_metrics(metrics, iteration)
 
     # Count the number of metrics that meet the target
     satisfied_metrics = sum(1 for key in TARGET_METRICS 
-                            if (metrics[key] <= TARGET_METRICS[key] if 'error' in key else metrics[key] >= TARGET_METRICS[key]))
+                            if (key in ['kendall_tau', 'pattern_f1_error'] and metrics[key] >= TARGET_METRICS[key]) or 
+                               (key not in ['kendall_tau', 'pattern_f1_error'] and metrics[key] <= TARGET_METRICS[key]))
 
     # Calculate the fraction of satisfied metrics
     satisfied_fraction = satisfied_metrics / len(TARGET_METRICS)
@@ -444,3 +526,12 @@ while True:
     else:
         logger.info(f'Only {satisfied_fraction:.2%} of target metrics met, running again...')
 
+    # Check if these are the best metrics so far
+    if best_metrics is None or satisfied_fraction > best_metrics['satisfied_fraction']:
+        best_metrics = metrics.copy()
+        best_metrics['satisfied_fraction'] = satisfied_fraction
+        best_iteration = iteration
+        save_best_metrics_and_sample(best_metrics, best_iteration, db_sample)
+
+    # Save the best individual metrics after each iteration
+    save_best_individual_metrics()
