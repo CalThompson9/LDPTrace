@@ -1,0 +1,10 @@
+Overall best individual metrics:
+Best density_error: 0.030494913090935327 at iteration 31
+Best hotspot_query_error: 0.014403327323206816 at iteration 212
+Best query_error: 0.29167439303037873 at iteration 31
+Best kendall_tau: 0.7253968253968254 at iteration 128
+Best trip_error: 0.1317605801044123 at iteration 228
+Best diameter_error: 0.004848756951416495 at iteration 87
+Best length_error: 0.012959272682602432 at iteration 87
+Best pattern_f1_error: 0.46 at iteration 166
+Best pattern_support_error: 0.6633421608536689 at iteration 212

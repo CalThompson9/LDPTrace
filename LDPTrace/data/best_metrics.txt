@@ -1,0 +1,17 @@
+Best metrics at iteration 31:
+density_error: 0.030494913090935327
+hotspot_query_error: 0.11099021866220549
+query_error: 0.29167439303037873
+kendall_tau: 0.7222222222222222
+trip_error: 0.13566066398955753
+diameter_error: 0.01699450691865756
+length_error: 0.028979017584122038
+pattern_f1_error: 0.44
+pattern_support_error: 0.6704937473111308
+satisfied_fraction: 0.4444444444444444
+
+Sample statistics:
+size: 164579
+avg_length: 60.05320241343063
+max_length: 317
+min_length: 1

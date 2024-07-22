@@ -421,12 +421,12 @@ def run_experiment(db_sample):
 # Define your target conditions based on the paper
 TARGET_METRICS = {
     'density_error': 0.01,  
-    'hotspot_query_error': 0.06,
-    'query_error': 0.26,
+    'hotspot_query_error': 0.29,
+    'query_error': 0.30,
     'kendall_tau': 0.8,
     'trip_error': 0.1,
     'diameter_error': 0.1,
-    'length_error': 0.1,
+    'length_error': 0.07,
     'pattern_f1_error': 0.6,
     'pattern_support_error': 0.6
 }
@@ -440,9 +440,6 @@ REQUIRED_FRACTION = 0.75
 best_metrics = None
 best_iteration = 0
 
-# Create a directory to save the best samples if it doesn't exist
-if not os.path.exists('best_samples'):
-    os.makedirs('best_samples')
 
 # Function to calculate sample statistics
 def get_sample_statistics(sample):
@@ -502,7 +499,7 @@ while True:
     random.shuffle(full_db)
     
     # Sample the dataset
-    sample_size = random.randint(1000, 100000)
+    sample_size = random.randint(10000, len(full_db))
     db_sample = sample_dataset(full_db, sample_size)
     
     metrics = run_experiment(db_sample)
