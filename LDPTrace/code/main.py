@@ -311,6 +311,8 @@ elif args.dataset == 'porto':
     db = dataset.read_porto(args.dataset)
 elif args.dataset == 'campus':
     db = dataset.read_campus(args.dataset)
+elif args.dataset == 'geo':
+    db = dataset.read_geo(args.dataset)
 else:
     logger.info(f'Invalid dataset: {args.dataset}')
     db = None
