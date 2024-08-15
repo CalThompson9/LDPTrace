@@ -313,6 +313,8 @@ elif args.dataset == 'campus':
     db = dataset.read_campus(args.dataset)
 elif args.dataset == 'geo':
     db = dataset.read_geo(args.dataset)
+elif args.dataset == 'tdrive':
+    db = dataset.read_tdrive(args.dataset)
 else:
     logger.info(f'Invalid dataset: {args.dataset}')
     db = None

@@ -14,8 +14,8 @@ def read_brinkhoff(dataset='brinkhoff'):
     """
     db = []
     file_name = f'../data/{dataset}.dat'
-    parse_oldenburg(file_name)
-    file_name = file_name.replace('.dat', '_formatted.dat')
+    #parse_oldenburg(file_name)
+    #file_name = file_name.replace('.dat', '_formatted.dat')
     with open(file_name, 'r') as f:
         row = f.readline()
         while row:
@@ -211,6 +211,35 @@ def read_geo(dataset='geo'):
     """
     db = []
     file_name = f'../data/geolife.dat'
+    with open(file_name, 'r') as f:
+        row = f.readline()
+        while row:
+            if row[0] == '#':
+                row = f.readline()
+                continue
+            if not row[0] == '>':
+                print(row)
+                exit()
+            # Skip '>0:' and ';\n' in the end
+            row = row[3:-2].split(';')  # row: ['x1,y1', 'x2,y2', ...]
+
+            t = [x.split(',') for x in row]  # t: [['x1','y1'], ['x2','y2'], ...]
+
+            t = [(eval(x[0]), eval(x[1])) for x in t]  # t: [(x1,y1), (x2,y2), ...]
+
+            db.append(t)
+            row = f.readline()
+
+    return db
+
+def read_tdrive(dataset='tdrive'):
+    """
+    Tdrive dataset:
+    #n:
+    >0: x1,y1;x2,y2;...:
+    """
+    db = []
+    file_name = f'../data/tdrive.dat'
     with open(file_name, 'r') as f:
         row = f.readline()
         while row:
