@@ -169,7 +169,7 @@ class TransitionMatrixVisualizer:
         transition_heatmap = self.aggregate_transitions()
 
         fig, ax = plt.subplots(figsize=(10, 10))
-        cax = ax.matshow(transition_heatmap, cmap='hot')
+        cax = ax.matshow(transition_heatmap, cmap='hot', origin='lower', vmin=0, vmax=1)  # Set origin to 'lower'
         fig.colorbar(cax)
 
         # Overlay grid
